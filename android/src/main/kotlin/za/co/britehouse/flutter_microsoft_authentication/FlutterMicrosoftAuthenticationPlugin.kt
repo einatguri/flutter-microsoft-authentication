@@ -19,7 +19,7 @@ import java.io.IOException
 
 
 class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
-  private var mSingleAccountApp: ISingleAccountPublicClientApplication? = null
+  private var mMultipleAccountApp: IMultipleAccountPublicClientApplication? = null
 
   companion object {
 
@@ -104,25 +104,21 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
   }
 
   private fun initPlugin(assetPath: String) {
-    createSingleAccountPublicClientApplication(assetPath)
+    createMultipleAccountPublicClientApplication(assetPath)
   }
 
-  private fun createSingleAccountPublicClientApplication(assetPath: String) {
+  private fun createMultipleAccountPublicClientApplication(assetPath: String) {
     val configFile = getConfigFile(assetPath)
     val context: Context = mainActivity.applicationContext
 
-    PublicClientApplication.createSingleAccountPublicClientApplication(
+    PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
             configFile,
-            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-              override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                /**
-                 * This test app assumes that the app is only going to support one account.
-                 * This requires "account_mode" : "SINGLE" in the config json file.
-                 *
-                 */
+            object : IPublicClientApplication.IMultipleAccountApplicationCreatedListener{
+              override fun onCreated(application: IMultipleAccountPublicClientApplication) {
+    
                 Log.d(TAG, "INITIALIZED")
-                mSingleAccountApp = application
+                mMultipleAccountApp = application
               }
 
               override fun onError(exception: MsalException) {
@@ -132,27 +128,27 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
   }
 
   private fun acquireTokenInteractively(scopes: Array<String>, authority: String, result: Result) {
-    if (mSingleAccountApp == null) {
+    if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mSingleAccountApp!!.signIn(mainActivity, "", scopes, getAuthInteractiveCallback(result))
+    return mMultipleAccountApp!!.signIn(mainActivity, "", scopes, getAuthInteractiveCallback(result))
   }
 
   private fun acquireTokenSilently(scopes: Array<String>, authority: String, result: Result) {
-    if (mSingleAccountApp == null) {
+    if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mSingleAccountApp!!.acquireTokenSilentAsync(scopes, authority, getAuthSilentCallback(result))
+    return mMultipleAccountApp!!.acquireTokenSilentAsync(scopes, authority, getAuthSilentCallback(result))
   }
 
   private fun signOut(result: Result){
-    if (mSingleAccountApp == null) {
+    if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mSingleAccountApp!!.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+    return mMultipleAccountApp!!.signOut(object : IMultipleAccountPublicClientApplication.SignOutCallback {
       override fun onSignOut() {
         result.success("SUCCESS")
       }
@@ -240,12 +236,12 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
   }
 
   private fun loadAccount(result: Result) {
-    if (mSingleAccountApp == null) {
+    if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mSingleAccountApp!!.getCurrentAccountAsync(object :
-            ISingleAccountPublicClientApplication.CurrentAccountCallback {
+    return mMultipleAccountApp!!.getCurrentAccountAsync(object :
+            IMultipleAccountPublicClientApplication.CurrentAccountCallback {
       override fun onAccountLoaded(activeAccount: IAccount?) {
         if (activeAccount != null) {
           result.success(activeAccount.username)
