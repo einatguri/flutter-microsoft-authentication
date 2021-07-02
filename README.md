@@ -63,7 +63,7 @@ dependencies:
   "client_id": "<client id>",
   "authorization_user_agent": "DEFAULT",
   "redirect_uri": "<redirect uri>",
-  "account_mode": "SINGLE",
+  "account_mode": "MULTIPLE",
   "broker_redirect_uri_registered": true,
   "shared_device_mode_supported": true,
   "authorities": [
