@@ -20,6 +20,7 @@ import java.io.IOException
 
 class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
   private var mMultipleAccountApp: IMultipleAccountPublicClientApplication? = null
+  private var accountList: List<IAccount>? = null
 
   companion object {
 
@@ -63,9 +64,9 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
     }
 
     when(call.method){
-      "acquireTokenInteractively" -> acquireTokenInteractively(scopes, authority, result)
+      "acquireTokenInteractively" -> acquireTokenInteractively(scopes, result)
       "acquireTokenSilently" -> acquireTokenSilently(scopes, authority, result)
-      "loadAccount" -> loadAccount(result)
+      "loadAccount" -> loadAccount()
       "signOut" -> signOut(result)
       "init" -> initPlugin(configPath)
       else -> result.notImplemented()
@@ -127,20 +128,23 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
             })
   }
 
-  private fun acquireTokenInteractively(scopes: Array<String>, authority: String, result: Result) {
+  private fun acquireTokenInteractively(scopes: Array<String>, result: Result) {
     if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mMultipleAccountApp!!.signIn(mainActivity, "", scopes, getAuthInteractiveCallback(result))
+    return mMultipleAccountApp!!.acquireToken(mainActivity, scopes, getAuthInteractiveCallback(result))
   }
 
   private fun acquireTokenSilently(scopes: Array<String>, authority: String, result: Result) {
     if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
     }
+    if (accountList == null) {
+      loadAccount()
+    }
 
-    return mMultipleAccountApp!!.acquireTokenSilentAsync(scopes, authority, getAuthSilentCallback(result))
+    return mMultipleAccountApp!!.acquireTokenSilentAsync(scopes, accountList!![0], authority, getAuthSilentCallback(result))
   }
 
   private fun signOut(result: Result){
@@ -148,16 +152,19 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mMultipleAccountApp!!.signOut(object : IMultipleAccountPublicClientApplication.SignOutCallback {
-      override fun onSignOut() {
-        result.success("SUCCESS")
-      }
+    mMultipleAccountApp!!.removeAccount(
+      accountList!![0],
+      object : IMultipleAccountPublicClientApplication.RemoveAccountCallback {
+          override fun onRemoved() {
+            result.success("ACCOUNT REMOVED")
 
-      override fun onError(exception: MsalException) {
-        Log.e(TAG, exception.message)
-        result.error("ERROR", exception.errorCode, null)
-      }
-    })
+          }
+  
+          override fun onError(exception: MsalException) {
+            Log.e(TAG, exception.message)
+            result.error("ERROR", exception.errorCode, null)
+          }
+      })
 
   }
 
@@ -235,32 +242,21 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
     }
   }
 
-  private fun loadAccount(result: Result) {
+  private fun loadAccount() {
     if (mMultipleAccountApp == null) {
-      result.error("MsalClientException", "Account not initialized", null)
+        return
     }
 
-    return mMultipleAccountApp!!.getCurrentAccountAsync(object :
-            IMultipleAccountPublicClientApplication.CurrentAccountCallback {
-      override fun onAccountLoaded(activeAccount: IAccount?) {
-        if (activeAccount != null) {
-          result.success(activeAccount.username)
+    mMultipleAccountApp!!.getAccounts(object : IPublicClientApplication.LoadAccountsCallback {
+        override fun onTaskCompleted(result: List<IAccount>) {
+            accountList = result
         }
-      }
 
-      override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {
-        if (currentAccount == null) {
-          // Perform a cleanup task as the signed-in account changed.
-          Log.d(TAG, "No Account")
-          result.success(null)
+        override fun onError(exception: MsalException) {
+          Log.d(TAG, "No Accounts" + exception.toString())
         }
-      }
-
-      override fun onError(exception: MsalException) {
-        Log.e(TAG, exception.message)
-        result.error("MsalException", exception.message, null)
-      }
     })
-  }
+}
+
 
 }

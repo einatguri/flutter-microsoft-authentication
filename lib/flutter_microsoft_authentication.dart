@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
 
-//Update to multiple
+//Update to multiple - compilation fixes
 
 class FlutterMicrosoftAuthentication {
   static const MethodChannel _channel =

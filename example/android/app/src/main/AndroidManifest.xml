@@ -36,8 +36,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="com.azuresamples.msalandroidkotlinapp"
-                    android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="
+                    android:host="com.mobitti.ariel"
+                    android:path="/F8QPY6j6C3C2a1Sk2qMqtM9FyLM="
                     android:scheme="msauth" />
             </intent-filter>
         </activity>
