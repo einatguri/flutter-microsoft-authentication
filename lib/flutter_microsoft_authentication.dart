@@ -53,10 +53,10 @@ class FlutterMicrosoftAuthentication {
     return token;
   }
 
-  /// Android only. Get username of current active account.
-  Future<String> get loadAccount async {
+  /// Get username of current active account.
+  Future<String> get getUsername async {
     final result = await _channel.invokeMethod(
-        'loadAccount', _createMethodcallArguments());
+        'getUsername', _createMethodcallArguments());
     return result;
   }
 

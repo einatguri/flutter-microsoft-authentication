@@ -28,7 +28,9 @@ public class SwiftFlutterMicrosoftAuthenticationPlugin: NSObject, FlutterPlugin 
     } else if(call.method == "acquireTokenSilently") {
         msalView.acquireTokenSilently(flutterResult: result)
     } else if(call.method == "signOut") {
-        msalView.signOut(flutterResult: result)
+        msalView.signOut(flutterResult: result) 
+    } else if (call.method == "getUsername") {
+        msalView.getUsername(flutterResult: result)
     } else {
         result(FlutterError(code:"INVALID_METHOD", message: "The method called is invalid", details: nil))
     }
@@ -226,6 +228,14 @@ extension ViewController {
         }
 
         return nil
+    }
+
+    func getUsername(flutterResult: @escaping FlutterResult) {
+        guard let account = self.currentAccount(flutterResult: flutterResult) else { 
+            flutterResult(FlutterError(code: "GET_USERNAME",  message: "Couldnt get username", details: nil))
+            return
+        }
+        flutterResult(account.username)
     }
 
     /**

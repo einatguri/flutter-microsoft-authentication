@@ -74,8 +74,8 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<String> _loadAccount() async {
-    String username = await this.fma.loadAccount;
+  Future<String> _getUsername() async {
+    String username = await this.fma.getUsername;
     setState(() {
       _username = username;
     });
@@ -117,7 +117,7 @@ class _MyAppState extends State<MyApp> {
                       child: Text('Fetch Profile')),
                   if (Platform.isAndroid == true)
                     ElevatedButton(
-                        onPressed: _loadAccount, child: Text('Load account')),
+                        onPressed: _getUsername, child: Text('Get username')),
                   SizedBox(
                     height: 8,
                   ),

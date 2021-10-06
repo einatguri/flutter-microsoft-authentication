@@ -66,7 +66,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
     when(call.method){
       "acquireTokenInteractively" -> acquireTokenInteractively(scopes, result)
       "acquireTokenSilently" -> acquireTokenSilently(scopes, authority, result)
-      // "loadAccount" -> loadAccount(id, result)
+      "getUsername" -> getUsername(result)
       "signOut" -> signOut(result)
       "init" -> initPlugin(configPath)
       else -> result.notImplemented()
@@ -123,7 +123,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
               }
 
               override fun onError(exception: MsalException) {
-                Log.e(TAG, exception.message)
+               // Log.e(TAG, exception.message)
               }
             })
   }
@@ -151,7 +151,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
       }
 
       override fun onError(exception: MsalException) {
-        Log.e(TAG, exception.message)
+       // Log.e(TAG, exception.message)
         result.error("MsalClientException", "Account not initialized", null)
       }
     })
@@ -173,7 +173,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
           }
   
           override fun onError(exception: MsalException) {
-            Log.e(TAG, exception.message)
+     //       Log.e(TAG, exception.message)
             result.error("ERROR", exception.errorCode, null)
           }
       })
@@ -254,29 +254,29 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
     }
   }
 
-//   private fun loadAccount(id: String, result: Result) {
-//     if (mMultipleAccountApp == null) {
-//       result.error("MsalClientException", "Account not initialized", null)
-//     }
+  private fun getUsername( result: Result) {
+    if (mMultipleAccountApp == null) {
+      result.error("MsalClientException", "Account not initialized", null)
+    }
 
-//     mMultipleAccountApp!!.getAccount(id)
+    mMultipleAccountApp!!.getAccounts(object : IPublicClientApplication.LoadAccountsCallback {
+      override fun onTaskCompleted(accountResult: List<IAccount>) {
+        if (accountResult.isNotEmpty()) {
+          accountList = accountResult
+          var currentAccount = accountResult!![0]
+          var username = currentAccount.username
+          return result.success(username)
+        }
+        result.error("MsalClientException", "Account not initialized", null)
+      }
 
-//    mMultipleAccountApp!!.getAccount(id, IMultipleAccountPublicClientApplication.GetAccountCallback {
-//        override fun onTaskCompleted(accountResult: List<IAccount>) {
-//            accountList = accountResult
-//            if (accountList != null) {
-//              var currentAccount = accountList!![0]
-//              result.success(currentAccount.id)
-//            }
-//            result.error("MsalClientException", "Account list is null", null)
-//          }
+      override fun onError(exception: MsalException) {
+       // Log.e(TAG, exception.message)
+        result.error("MsalClientException", "Account not initialized", null)
+      }
+    })
 
-//        override fun onError(exception: MsalException) {
-//          Log.e(TAG, exception.message)
-//                    result.error("MsalException", exception.message, null)
-//        }
-//    })
-// }
 
+  }
 
 }
