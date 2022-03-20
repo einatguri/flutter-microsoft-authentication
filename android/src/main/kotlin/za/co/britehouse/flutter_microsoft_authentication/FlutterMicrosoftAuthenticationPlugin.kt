@@ -3,38 +3,78 @@ package za.co.britehouse.flutter_microsoft_authentication
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.annotation.NonNull
 import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
+import io.flutter.FlutterInjector
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 
-class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
+class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private var mMultipleAccountApp: IMultipleAccountPublicClientApplication? = null
   private var accountList: List<IAccount>? = null
 
   companion object {
 
-    lateinit var mainActivity: Activity
-    lateinit var mRegistrar: Registrar
-    private const val TAG = "FMAuthPlugin"
+    lateinit var context: Context
+    lateinit var activity: Activity
+    private var binaryMessenger: BinaryMessenger? = null
+    private var channel: MethodChannel? = null
+    private val TAG = "FMAuthPlugin"
+  }
 
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "flutter_microsoft_authentication")
-      channel.setMethodCallHandler(FlutterMicrosoftAuthenticationPlugin())
-      mainActivity = registrar.activity()
-      mRegistrar = registrar
+
+
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+      binaryMessenger = flutterPluginBinding.binaryMessenger
+      context = flutterPluginBinding.applicationContext
+      Log.d("DART/NATIVE", "context is $context")
+
+
     }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+      channel?.setMethodCallHandler(null)
+      //release resources
+    }
+
+    override fun onDetachedFromActivity() {
+    TODO("Not yet implemented")
+  }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+    Log.d("DART/NATIVE", "onReattachedToActivityForConfigChanges")
+    onAttachedToActivity(binding)
+  }
+
+  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+    Log.d("DART/NATIVE", "onAttachedToActivity")
+    activity = binding.activity;
+
+    Log.d("DART/NATIVE", "activity is $activity")
+
+
+    channel = MethodChannel(binaryMessenger, "flutter_microsoft_authentication")
+    channel?.setMethodCallHandler(FlutterMicrosoftAuthenticationPlugin());
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    TODO("Not yet implemented")
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
@@ -77,13 +117,13 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
 
   @Throws(IOException::class)
   private fun getConfigFile(path: String): File {
-    val key: String = mRegistrar.lookupKeyForAsset(path)
-    val configFile = File(mainActivity.applicationContext.cacheDir, "config.json")
+    val key: String =  FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(path)
+    val configFile = File(activity.applicationContext.cacheDir, "config.json")
 
 
 
     try {
-      val assetManager = mRegistrar.context().assets
+      val assetManager =  activity.applicationContext.assets
 
       val inputStream = assetManager.open(key)
       val outputStream = FileOutputStream(configFile)
@@ -110,7 +150,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
 
   private fun createMultipleAccountPublicClientApplication(assetPath: String) {
     val configFile = getConfigFile(assetPath)
-    val context: Context = mainActivity.applicationContext
+    val context: Context = activity.applicationContext
 
     PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
@@ -123,7 +163,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
               }
 
               override fun onError(exception: MsalException) {
-               // Log.e(TAG, exception.message)
+                //Log.e(TAG, exception.message)
               }
             })
   }
@@ -133,7 +173,7 @@ class FlutterMicrosoftAuthenticationPlugin: MethodCallHandler {
       result.error("MsalClientException", "Account not initialized", null)
     }
 
-    return mMultipleAccountApp!!.acquireToken(mainActivity, scopes, getAuthInteractiveCallback(result))
+    return mMultipleAccountApp!!.acquireToken(activity, scopes, getAuthInteractiveCallback(result))
   }
 
   private fun acquireTokenSilently(scopes: Array<String>, authority: String, result: Result) {
