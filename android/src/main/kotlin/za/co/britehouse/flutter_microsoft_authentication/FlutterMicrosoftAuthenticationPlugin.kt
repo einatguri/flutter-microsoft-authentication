@@ -54,7 +54,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
     }
 
     override fun onDetachedFromActivity() {
-    TODO("Not yet implemented")
+      Log.d("DART/NATIVE", "onDetachedFromActivity")
   }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
