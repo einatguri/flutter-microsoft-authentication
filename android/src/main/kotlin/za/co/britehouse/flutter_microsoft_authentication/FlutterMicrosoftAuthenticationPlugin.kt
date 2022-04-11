@@ -8,7 +8,7 @@ import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
-import com.microsoft.identity.client.exception.MsalUiRequiredException
+import com.microsoft.identonDetachedFromActivityForConfigChangesity.client.exception.MsalUiRequiredException
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -74,7 +74,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    TODO("Not yet implemented")
+    Log.d("DART/NATIVE", "detach from activity for config changes")
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
