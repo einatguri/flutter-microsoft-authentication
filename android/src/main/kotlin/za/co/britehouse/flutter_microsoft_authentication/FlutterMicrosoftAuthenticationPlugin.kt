@@ -8,7 +8,7 @@ import com.microsoft.identity.client.*
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
-import com.microsoft.identonDetachedFromActivityForConfigChangesity.client.exception.MsalUiRequiredException
+import com.microsoft.identity.client.exception.MsalUiRequiredException
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity
