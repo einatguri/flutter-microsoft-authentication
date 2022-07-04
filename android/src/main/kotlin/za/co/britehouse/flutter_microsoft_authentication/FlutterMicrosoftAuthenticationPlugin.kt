@@ -55,6 +55,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
 
     override fun onDetachedFromActivity() {
       Log.d("DART/NATIVE", "onDetachedFromActivity")
+      activity = null
   }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
@@ -69,12 +70,14 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
     Log.d("DART/NATIVE", "activity is $activity")
 
 
-    channel = MethodChannel(binaryMessenger, "flutter_microsoft_authentication")
+    channel = MethodChannel(binaryMessenger!!, "flutter_microsoft_authentication")
     channel?.setMethodCallHandler(FlutterMicrosoftAuthenticationPlugin());
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
     Log.d("DART/NATIVE", "detach from activity for config changes")
+    activity = null
+
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
