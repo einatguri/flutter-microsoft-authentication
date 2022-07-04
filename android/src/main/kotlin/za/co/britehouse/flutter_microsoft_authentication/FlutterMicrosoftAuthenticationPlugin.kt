@@ -70,7 +70,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
     Log.d("DART/NATIVE", "activity is $activity")
 
 
-    channel = MethodChannel(binaryMessenger!!, "flutter_microsoft_authentication")
+    channel = MethodChannel(binaryMessenger, "flutter_microsoft_authentication")
     channel?.setMethodCallHandler(FlutterMicrosoftAuthenticationPlugin());
   }
 
