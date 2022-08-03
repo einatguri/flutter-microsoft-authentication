@@ -32,7 +32,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
   companion object {
 
     lateinit var context: Context
-    lateinit var activity: Activity
+    private var activity: Activity? = null
     private var binaryMessenger: BinaryMessenger? = null
     private var channel: MethodChannel? = null
     private val TAG = "FMAuthPlugin"
@@ -70,7 +70,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
     Log.d("DART/NATIVE", "activity is $activity")
 
 
-    channel = MethodChannel(binaryMessenger, "flutter_microsoft_authentication")
+    channel = binaryMessenger?.let { MethodChannel(it, "flutter_microsoft_authentication") }
     channel?.setMethodCallHandler(FlutterMicrosoftAuthenticationPlugin());
   }
 
@@ -121,23 +121,23 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
   @Throws(IOException::class)
   private fun getConfigFile(path: String): File {
     val key: String =  FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(path)
-    val configFile = File(activity.applicationContext.cacheDir, "config.json")
+    val configFile = File(activity?.applicationContext?.cacheDir, "config.json")
 
 
 
     try {
-      val assetManager =  activity.applicationContext.assets
+      val assetManager =  activity?.applicationContext?.assets
 
-      val inputStream = assetManager.open(key)
+      val inputStream = assetManager?.open(key)
       val outputStream = FileOutputStream(configFile)
       try {
         Log.d(TAG, "File exists: ${configFile.exists()}")
         if (configFile.exists()) {
           outputStream.write("".toByteArray())
         }
-        inputStream.copyTo(outputStream)
+        inputStream?.copyTo(outputStream)
       } finally {
-        inputStream.close()
+        inputStream?.close()
         outputStream.close()
       }
       return  configFile
@@ -153,8 +153,9 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
 
   private fun createMultipleAccountPublicClientApplication(assetPath: String) {
     val configFile = getConfigFile(assetPath)
-    val context: Context = activity.applicationContext
+    val context: Context? = activity?.applicationContext
 
+    if (context != null)
     PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
             configFile,
@@ -174,9 +175,11 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
   private fun acquireTokenInteractively(scopes: Array<String>, result: Result) {
     if (mMultipleAccountApp == null) {
       result.error("MsalClientException", "Account not initialized", null)
+    } else if (activity == null) {
+      Log.d(TAG, "Activity is null")
+      result.error("MsalClientException", "Activity is null", null)
     }
-
-    return mMultipleAccountApp!!.acquireToken(activity, scopes, getAuthInteractiveCallback(result))
+    return mMultipleAccountApp!!.acquireToken(activity!!, scopes, getAuthInteractiveCallback(result))
   }
 
   private fun acquireTokenSilently(scopes: Array<String>, authority: String, result: Result) {
@@ -187,7 +190,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
       override fun onTaskCompleted(accountResult: List<IAccount>) {
         if (accountResult.isNotEmpty()) {
           accountList = accountResult
-          var currentAccount = accountResult!![0]
+          var currentAccount = accountResult[0]
           return mMultipleAccountApp!!.acquireTokenSilentAsync(scopes, currentAccount, authority, getAuthSilentCallback(result))
         }
         result.error("MsalClientException", "Account not initialized", null)
@@ -306,7 +309,7 @@ class FlutterMicrosoftAuthenticationPlugin: FlutterPlugin, MethodCallHandler, Ac
       override fun onTaskCompleted(accountResult: List<IAccount>) {
         if (accountResult.isNotEmpty()) {
           accountList = accountResult
-          var currentAccount = accountResult!![0]
+          var currentAccount = accountResult[0]
           var username = currentAccount.username
           return result.success(username)
         }
