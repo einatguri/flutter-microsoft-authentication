@@ -74,13 +74,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<String> _getUsername() async {
-    String username = await this.fma.getUsername;
-    setState(() {
-      _username = username;
-    });
-  }
-
   _fetchMicrosoftProfile() async {
     var response = await http.get(this._graphURI,
         headers: {"Authorization": "Bearer " + this._authToken});
@@ -115,9 +108,6 @@ class _MyAppState extends State<MyApp> {
                   ElevatedButton(
                       onPressed: _fetchMicrosoftProfile,
                       child: Text('Fetch Profile')),
-                  if (Platform.isAndroid == true)
-                    ElevatedButton(
-                        onPressed: _getUsername, child: Text('Get username')),
                   SizedBox(
                     height: 8,
                   ),
